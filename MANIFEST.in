@@ -1,1 +1,2 @@
 recursive-include debian *
+include ligo-lvalert.spec
