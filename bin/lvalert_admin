@@ -36,7 +36,7 @@ usage = """\
 %prog [options]
 ------------------------------------------------------------------------------
   A tool to administer the pubsub service of openfire at
-  lvalert.phys.uwm.edu. LSC-Virgo members can activate their accounts 
+  lvalert.cgca.uwm.edu. LSC-Virgo members can activate their accounts 
   on this server by completing the form at
   
     https://www.lsc-group.phys.uwm.edu/cgi-bin/jabber-acct.cgi 
@@ -92,7 +92,7 @@ def parse_command_line():
   parser.add_option("-b","--password",action="store",type="string",\
       default="", help="the password of the publisher or listener" )
   parser.add_option("-c","--server",action="store",type="string",\
-      default="lvalert.phys.uwm.edu", help="the pubsub server" )
+      default="lvalert.cgca.uwm.edu", help="the pubsub server" )
   parser.add_option("-r","--resource",action="store",type="string",\
       default="admin", help="resource to use in JID" )
 
@@ -149,7 +149,10 @@ class MyClient(Client):
         #  Specify sslv3 to get around Sun Java SSL bug handling session ticket
         #  https://rt.phys.uwm.edu/Ticket/Display.html?id=1825
         #  http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6728126
-        t=TLSSettings(require=True,verify_peer=False, ctx=Context('sslv3'))
+        # NOTE: This is no longer necessary after Openfire 3.7.
+        # (See update to RT ticket above.)
+        #t=TLSSettings(require=True,verify_peer=False, ctx=Context('sslv3'))
+        t=TLSSettings(require=True,verify_peer=False)
 
         # setup client with provided connection information
         # and identity data
