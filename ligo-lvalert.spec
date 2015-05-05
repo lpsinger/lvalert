@@ -1,7 +1,7 @@
 %define name              ligo-lvalert
 %define version           1.3
 %define unmangled_version 1.3
-%define release           1
+%define release           2
 
 Summary:   LVAlert Client Tools
 Name:      %{name}
@@ -14,7 +14,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Prefix:    %{_prefix}
 BuildArch: noarch
 Vendor:    Branson Stephens <branson.stephens@ligo.org>
-Requires:  ligo-common python-pyxmpp
+Requires:  ligo-common pyxmpp
 Url:       http://www.lsc-group.phys.uwm.edu/daswg/lvalert.html
 
 %description
