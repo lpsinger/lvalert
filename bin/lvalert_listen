@@ -209,6 +209,9 @@ class LVAlertHandler(object):
 #                    import tempfile
                     file_obj = tempfile.SpooledTemporaryFile(mode="w+r", max_size=1000)
                     file_obj.write(e)
+                    file_obj.readlines() ### bug fix for "alert_type"=="new" events
+                                         ### without this, the position in file_obj gets messed up
+                                         ### no idea why, but it might be related to long messages becoming multiple stanzas
                     file_obj.seek(0, 0)
 #                    p = Popen([self.actions[n]], stdin=file_obj)
                     p = multiprocessing.Process(target=forked_wait, args=([self.actions[n]], file_obj))
