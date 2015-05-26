@@ -1,7 +1,7 @@
 %define name              ligo-lvalert
-%define version           1.3
-%define unmangled_version 1.3
-%define release           2
+%define version           1.3.1
+%define unmangled_version 1.3.1
+%define release           1
 
 Summary:   LVAlert Client Tools
 Name:      %{name}

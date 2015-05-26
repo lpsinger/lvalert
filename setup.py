@@ -5,7 +5,7 @@ import os
 
 from distutils.core import setup
 
-version = "1.3"
+version = "1.3.1"
 
 setup(
   name = "ligo-lvalert",
