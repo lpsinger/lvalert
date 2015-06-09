@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) Patrick Brady, Brian Moe, Branson Stephens (2015)
 #
 # This file is part of lvalert
@@ -15,3 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
 
+__import__('pkg_resources').declare_namespace(__name__)

@@ -1,9 +1,25 @@
+# -*- coding: utf-8 -*-
+# Copyright (C) Patrick Brady, Brian Moe, Branson Stephens (2015)
+#
+# This file is part of lvalert
+#
+# lvalert is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# It is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
 # 
-# setup script for lvalert
 
 import os
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 version = "1.3.1"
 
@@ -17,10 +33,11 @@ setup(
 
   url = "http://www.lsc-group.phys.uwm.edu/daswg/lvalert.html",
   license = 'GPL',
-  provides = ['ligo.lvalert'],
-  packages = [ 'ligo.lvalert'],
+  namespace_packages = ['ligo'],
+#  provides = ['ligo.lvalert'],
+  packages = find_packages(),
 
-  requires = ['ligo', 'pyxmpp', 'libxml2', 'M2Crypto', 'dnspython'],
+  requires = ['pyxmpp', 'libxml2', 'M2Crypto', 'dnspython'],
 
   scripts = [
     os.path.join('bin','lvalert_admin'),

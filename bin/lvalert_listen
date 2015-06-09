@@ -1,4 +1,21 @@
 #!/usr/bin/env python
+# Copyright (C) Patrick Brady, Brian Moe, Branson Stephens (2015)
+#
+# This file is part of lvalert
+#
+# lvalert is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# It is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
+
 import sys
 import os
 import datetime
@@ -25,13 +42,6 @@ from pyxmpp.interfaces import *
 """
 A tool to listen for events on a pubsub node 
 """
-
-__version__ = "$Revision$"
-__date__ = "$Date$"
-__name__ = "lvalert_listen"
-__Id__ = "$Id$"
-__title__ = "LIGO-Virgo Alert Administration"
-
 
 #################################################################
 # help message
@@ -95,10 +105,7 @@ def parse_command_line():
   """
   Parser function dedicated
   """
-  parser = OptionParser( usage=usage, \
-      version= "%prog CVS\n" +
-      "$Id$\n" +
-      "$Name$\n")
+  parser = OptionParser(usage=usage)
 
   #username and password
   parser.add_option("-a","--username",action="store",type="string",\
@@ -128,6 +135,10 @@ def parse_command_line():
   parser.add_option("", "--dont-wait",action="store_true",\
       default=False, help="if supplied, jobs will be launched \
       as soon as they arrive, rather than blocking")
+
+  # version
+  parser.add_option("-w", "--version", action="store_true",
+      default=False, help="display version information")
   
   (options,args) = parser.parse_args()
 
@@ -136,6 +147,12 @@ def parse_command_line():
 # ============================================================================
 # -- get command line arguments
 opts, args = parse_command_line()
+
+if opts.version:
+    import pkg_resources
+    version = pkg_resources.require("ligo-lvalert")[0].version
+    print "LVAlert v. %s" % version
+    exit(0)
 
 if opts.dont_wait: ### required packages for "dont-wait" option
     import multiprocessing

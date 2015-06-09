@@ -1,4 +1,21 @@
 #!/usr/bin/env python
+# Copyright (C) Patrick Brady, Brian Moe, Branson Stephens (2015)
+#
+# This file is part of lvalert
+#
+# lvalert is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# It is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
+
 import sys
 import os
 import time
@@ -22,13 +39,6 @@ from pyxmpp.exceptions import ClientError, FatalClientError
 """
 A tool to administer the pubsub service of openfire
 """
-
-__version__ = "$Revision$"
-__date__ = "$Date$"
-__name__ = "lvalert_admin"
-__Id__ = "$Id$"
-__title__ = "LIGO-Virgo Alert Administration"
-
 
 #################################################################
 # help message
@@ -81,10 +91,7 @@ def parse_command_line():
   """
   Parser function dedicated
   """
-  parser = OptionParser( usage=usage, \
-      version= "%prog CVS\n" +
-      "$Id$\n" +
-      "$Name$\n")
+  parser = OptionParser(usage=usage)
 
   #username and password
   parser.add_option("-a","--username",action="store",type="string",\
@@ -124,8 +131,17 @@ def parse_command_line():
       default=False, help="should  print out lots of information" )
   parser.add_option("-v","--verbose",action="store_true",\
       default=False, help="be verbose as you process the request" )
+  # version
+  parser.add_option("-w", "--version", action="store_true",
+      default=False, help="display version information")
   
   (options,args) = parser.parse_args()
+
+  if options.version:
+    import pkg_resources
+    version = pkg_resources.require("ligo-lvalert")[0].version
+    print "LVAlert v. %s" % version
+    exit(0)
 
   if not options.username:
     raise ValueError, "--username must be provided"
