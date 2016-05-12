@@ -16,10 +16,13 @@
 # You should have received a copy of the GNU General Public License
 # along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
 
+import netrc
 import sys
+import os
 import datetime
 import logging
 import libxml2
+import getpass
 from optparse import OptionParser
 from M2Crypto.SSL import Context
 
@@ -55,7 +58,7 @@ usage = """\
   You can send information containted in the file stuff.xml by
   doing:
 
-  %prog --username albert.einstein --password secret --node small_steps --file stuff.xml --max_attempts N
+  %prog --username albert.einstein --node small_steps --file stuff.xml --max_attempts N
 
   When an stuff.xml is sent to a node by a publisher, it will be sent
   to all subscribers who are logged in.
@@ -77,49 +80,42 @@ usage = """\
 """
 
 #################################################################
-def parse_command_line():
-  """
-  Parser function dedicated
-  """
-  parser = OptionParser(usage=usage)
+parser = OptionParser(usage=usage)
 
-  #username and password
-  parser.add_option("-a","--username",action="store",type="string",\
-      default="", help="the username of the publisher or listener" )
-  parser.add_option("-b","--password",action="store",type="string",\
-      default="", help="the password of the publisher or listener" )
-  parser.add_option("-s","--server",action="store",type="string",\
-      default="lvalert.cgca.uwm.edu", help="the pubsub server" )
-  parser.add_option("-r","--resource",action="store",type="string",\
-      default="sender", help="resource to use in JID" )
+#username and password
+parser.add_option("-a","--username",action="store",type="string",\
+  help="the username of the publisher or listener" )
+parser.add_option("-s","--server",action="store",type="string",\
+  default="lvalert.cgca.uwm.edu", help="the pubsub server" )
+parser.add_option("-r","--resource",action="store",type="string",\
+  default="sender", help="resource to use in JID" )
+parser.add_option("--netrc", "-N",
+  help="Load username and password from this file",
+  default=os.environ.get('NETRC', '~/.netrc'))
 
-  # access information about root nodes
-  parser.add_option("-n","--node",action="store",type="string",\
-      default=None, help="name of the node on the pubsub server" )
-  parser.add_option("-p","--file",action="store",type="string",\
-      default=None, help="name of the file with the event" )
+# access information about root nodes
+parser.add_option("-n","--node",action="store",type="string",\
+  default=None, help="name of the node on the pubsub server" )
+parser.add_option("-p","--file",action="store",type="string",\
+  default=None, help="name of the file with the event" )
 
-  # debugging options
-  parser.add_option("-v","--verbose",action="store_true",\
-      default=False, help="be verbose as you process the request" )
-  parser.add_option("-g","--debug",action="store_true",\
-      default=False, help="should  print out lots of information" )
+# debugging options
+parser.add_option("-v","--verbose",action="store_true",\
+  default=False, help="be verbose as you process the request" )
+parser.add_option("-g","--debug",action="store_true",\
+  default=False, help="should  print out lots of information" )
 
-  # timeout attempts
-  parser.add_option("-m","--max_attempts",action="store_true",\
-      default=10, help="max number of timeouts allowed" )
+# timeout attempts
+parser.add_option("-m","--max_attempts",action="store_true",\
+  default=10, help="max number of timeouts allowed" )
 
-  # version
-  parser.add_option("-w", "--version", action="store_true",
-      default=False, help="display version information")
+# version
+parser.add_option("-w", "--version", action="store_true",
+  default=False, help="display version information")
 
-  (options,args) = parser.parse_args()
-
-  return options, sys.argv[1:]
-  
 # ============================================================================
 # -- get command line arguments
-opts, args = parse_command_line()
+opts, args = parser.parse_args()
 
 if opts.version:
     import pkg_resources
@@ -127,8 +123,18 @@ if opts.version:
     print "LVAlert v. %s" % version
     exit(0)
 
-if not opts.username:
-    raise ValueError, "--username is required"
+try:
+    default_username, _, default_password = netrc.netrc(os.path.expanduser(opts.netrc)).authenticators(opts.server)
+except:
+    default_username, default_password = None, None
+
+myusername = opts.username or default_username
+if not myusername:
+    parser.error('--username is required')
+if myusername == default_username:
+    mypassword = default_password
+else:
+    mypassword = getpass.getpass('password for ' + myusername + ': ')
 
 if not opts.node:
     raise ValueError, "--node is required"
@@ -237,12 +243,12 @@ if not opts.file:
 libxml2.debugMemory(1)
 
 # Instantiate the client
-jid=JID(opts.username+"@"+opts.server+"/"+opts.resource)
+jid=JID(myusername+"@"+opts.server+"/"+opts.resource)
 # if bare JID is provided add a resource -- it is required
 if not jid.resource:
     jid=JID(jid.node, jid.domain, "sender")
 
-client = MyClient(jid,opts.password,opts.max_attempts,onStart)
+client = MyClient(jid,mypassword,opts.max_attempts,onStart)
 
 # Connect
 logger.info("connecting...")

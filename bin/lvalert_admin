@@ -16,12 +16,14 @@
 # You should have received a copy of the GNU General Public License
 # along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
 
+import netrc
 import sys
 import os
 import time
 import select
 import logging
 import libxml2
+import getpass
 from optparse import *
 from M2Crypto.SSL import Context
 
@@ -56,29 +58,29 @@ usage = """\
 
   1.  create a pubsub node called small_steps
 
-  %prog --username albert.einstein --password secret --create --node small_steps
+  %prog --username albert.einstein --create --node small_steps
 
   2.  delete a pubsub node called small_steps
 
-  %prog --username albert.einstein --password secret --delete --node small_steps
+  %prog --username albert.einstein --delete --node small_steps
 
   4.  subscribe to a pubsub node called lvalert_test
 
-  %prog --username albert.einstein --password secret --subscribe --node lvalert_test
+  %prog --username albert.einstein --subscribe --node lvalert_test
 
   The owner (person who creates the node by default) can delete and
   publish information to the node. The owner can also add other
   publishers to the node using the command
   
-  %prog --username albert.einstein --password secret --add-publisher patrick.brady --node small_steps
+  %prog --username albert.einstein --add-publisher patrick.brady --node small_steps
   
   Others can subscribe. To see a list of available nodes:
   
-  %prog --username albert.einstein --password secret --get-nodes 
+  %prog --username albert.einstein --get-nodes 
 
   To see the nodes to which you are subscribed:
 
-  %prog --username albert.einstein --password secret --subscriptions
+  %prog --username albert.einstein --subscriptions
   
   There are two programs called lvalert_listen and lvalert_send which
   provide ways to listen for content on the node and to publish
@@ -87,73 +89,76 @@ usage = """\
 """
 
 #################################################################
-def parse_command_line():
-  """
-  Parser function dedicated
-  """
-  parser = OptionParser(usage=usage)
+parser = OptionParser(usage=usage)
 
-  #username and password
-  parser.add_option("-a","--username",action="store",type="string",\
-      default="", help="the username of the publisher or listener" )
-  parser.add_option("-b","--password",action="store",type="string",\
-      default="", help="the password of the publisher or listener" )
-  parser.add_option("-c","--server",action="store",type="string",\
-      default="lvalert.cgca.uwm.edu", help="the pubsub server" )
-  parser.add_option("-r","--resource",action="store",type="string",\
-      default="admin", help="resource to use in JID" )
+#username and password
+parser.add_option("-a","--username",action="store",type="string",\
+  help="the username of the publisher or listener" )
+parser.add_option("-c","--server",action="store",type="string",\
+  default="lvalert.cgca.uwm.edu", help="the pubsub server" )
+parser.add_option("-r","--resource",action="store",type="string",\
+  default="admin", help="resource to use in JID" )
+parser.add_option("--netrc", "-N",
+  help="Load username and password from this file",
+  default=os.environ.get('NETRC', '~/.netrc'))
 
-  # access information about root nodes
-  parser.add_option("-d","--create",action="store_true",\
-      default=False, help="create a new pubsub node" )
-  parser.add_option("-e","--delete",action="store_true",\
-      default=False, help="delete a new pubsub node" )
-  parser.add_option("-f","--subscribe",action="store_true",\
-      default=False, help="subscribe to a new pubsub node" )
-  parser.add_option("-g","--unsubscribe",action="store_true",\
-      default=False, help="unsubscribe from a new pubsub node" )
-  parser.add_option("-n","--unsubscribe-subid",action="store",type="string",\
-      default=None, help="subid of subscription obtained by running subscriptions" )
-  parser.add_option("-i","--subscriptions",action="store_true",\
-      default=False, help="return a list of subscriptions" )
-  parser.add_option("-j","--add-publisher",action="store",type="string",\
-      default=None, help="jabber id of person allowed to publish to node" )
-  parser.add_option("-m","--get-nodes",action="store_true",\
-      default=False, help="get the list of existing nodes" )
-  parser.add_option("-o","--affiliations",action="store",type="string",\
-      default=None, help="get the list of affiliations to a node" )
-  parser.add_option("-p","--delete-publisher",action="store",type="string",\
-      default=None, help="jid of publisher to delete from a node" )
-  parser.add_option("-q","--node",action="store",type="string",\
-      default=None, help="name of node" )
-  # debugging options
-  parser.add_option("-l","--debug",action="store_true",\
-      default=False, help="should  print out lots of information" )
-  parser.add_option("-v","--verbose",action="store_true",\
-      default=False, help="be verbose as you process the request" )
-  # version
-  parser.add_option("-w", "--version", action="store_true",
-      default=False, help="display version information")
+# access information about root nodes
+parser.add_option("-d","--create",action="store_true",\
+  default=False, help="create a new pubsub node" )
+parser.add_option("-e","--delete",action="store_true",\
+  default=False, help="delete a new pubsub node" )
+parser.add_option("-f","--subscribe",action="store_true",\
+  default=False, help="subscribe to a new pubsub node" )
+parser.add_option("-g","--unsubscribe",action="store_true",\
+  default=False, help="unsubscribe from a new pubsub node" )
+parser.add_option("-n","--unsubscribe-subid",action="store",type="string",\
+  default=None, help="subid of subscription obtained by running subscriptions" )
+parser.add_option("-i","--subscriptions",action="store_true",\
+  default=False, help="return a list of subscriptions" )
+parser.add_option("-j","--add-publisher",action="store",type="string",\
+  default=None, help="jabber id of person allowed to publish to node" )
+parser.add_option("-m","--get-nodes",action="store_true",\
+  default=False, help="get the list of existing nodes" )
+parser.add_option("-o","--affiliations",action="store",type="string",\
+  default=None, help="get the list of affiliations to a node" )
+parser.add_option("-p","--delete-publisher",action="store",type="string",\
+  default=None, help="jid of publisher to delete from a node" )
+parser.add_option("-q","--node",action="store",type="string",\
+  default=None, help="name of node" )
+# debugging options
+parser.add_option("-l","--debug",action="store_true",\
+  default=False, help="should  print out lots of information" )
+parser.add_option("-v","--verbose",action="store_true",\
+  default=False, help="be verbose as you process the request" )
+# version
+parser.add_option("-w", "--version", action="store_true",
+  default=False, help="display version information")
   
-  (options,args) = parser.parse_args()
+# ============================================================================
+# -- get command line arguments
+opts, args = parser.parse_args()
 
-  if options.version:
+if opts.version:
     import pkg_resources
     version = pkg_resources.require("ligo-lvalert")[0].version
     print "LVAlert v. %s" % version
     exit(0)
 
-  if not options.username:
-    raise ValueError, "--username must be provided"
+if (opts.add_publisher or opts.create or opts.delete or opts.subscribe or opts.unsubscribe or opts.delete_publisher) and not opts.node:
+    parser.error("--node must be provided")
 
-  if (options.add_publisher or options.create or options.delete or options.subscribe or options.unsubscribe or options.delete_publisher) and not options.node:
-    raise ValueError, "--node must be provided"
+try:
+    default_username, _, default_password = netrc.netrc(os.path.expanduser(opts.netrc)).authenticators(opts.server)
+except:
+    default_username, default_password = None, None
 
-  return options, sys.argv[1:]
-  
-# ============================================================================
-# -- get command line arguments
-opts, args = parse_command_line()
+myusername = opts.username or default_username
+if not myusername:
+    parser.error('--username is required')
+if myusername == default_username:
+    mypassword = default_password
+else:
+    mypassword = getpass.getpass('password for ' + myusername + ': ')
 
 class MyClient(Client):
     def __init__(self, jid, password):
@@ -251,8 +256,8 @@ else:
 libxml2.debugMemory(1)
 
 # set up the stream
-myjid=JID(opts.username+"@"+opts.server+"/"+opts.resource)
-s=MyClient(jid=myjid,password=opts.password)
+myjid=JID(myusername+"@"+opts.server+"/"+opts.resource)
+s=MyClient(jid=myjid,password=mypassword)
 
 if opts.verbose:
     print "connecting..."

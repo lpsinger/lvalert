@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # Copyright (C) Patrick Brady, Brian Moe, Branson Stephens (2015)
+# Copyright (C) Leo Singer (2016)
 #
 # This file is part of lvalert
 #
@@ -16,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
 
+import netrc
 import sys
 import os
 import datetime
@@ -61,12 +63,23 @@ usage = """\
   the node using lvalert_admin. Then you will receive any events that are
   published to that node by doing:
 
-  %prog --username albert.einstein --password secret
+  %prog --username albert.einstein
+
+  If you do not provide the username, then the program will look for it in
+  the file ~/.netrc in your home directory. This location may be overriden
+  with the NETRC environment variable or the --netrc option. This file
+  should contain a line like the following:
+
+      machine lvalert.cgca.uwm.edu login albert.einstein password ligorocks
+
+  If a matching entry in your .netrc file is found, the program will use
+  that password. Otherwise, it will prompt you interactively for your
+  password.
 
   When an event is published to the node, a message will be printed to
   the window where the listener is running. To see the event, run
 
-  %prog --username albert.einstein --password secret --show
+  %prog --username albert.einstein --show
 
   The owner (person who creates the node by default) can delete and
   publish information to the node. The owner can also add other
@@ -90,7 +103,7 @@ usage = """\
 
   then running
 
-  lvalert_listen --username albert.einstein --password secret --config-file example.ini
+  lvalert_listen --username albert.einstein secret --config-file example.ini
 
   would result in ./mycounter being executed and the output printed to
   screen whenever a message was received via the lvalert_test node. 
@@ -101,58 +114,64 @@ usage = """\
 """
 
 #################################################################
-def parse_command_line():
-  """
-  Parser function dedicated
-  """
-  parser = OptionParser(usage=usage)
+parser = OptionParser(usage=usage)
 
-  #username and password
-  parser.add_option("-a","--username",action="store",type="string",\
-      default="", help="the username of the publisher or listener" )
-  parser.add_option("-b","--password",action="store",type="string",\
-      default="", help="the password of the publisher or listener" )
-  parser.add_option("-s","--server",action="store",type="string",\
-      default="lvalert.cgca.uwm.edu", help="the pubsub server" )
-  parser.add_option("-r","--resource",action="store",type="string",\
-      default="listener", help="resource to use in JID" )
-  parser.add_option("-c","--config-file",action="store",type="string",\
-      default=None, help="config file with list of actions" )
+#username and password
+parser.add_option("-a","--username",action="store",type="string",\
+  help="the username of the publisher or listener" )
+parser.add_option("-s","--server",action="store",type="string",\
+  default="lvalert.cgca.uwm.edu", help="the pubsub server" )
+parser.add_option("-r","--resource",action="store",type="string",\
+  default="listener", help="resource to use in JID" )
+parser.add_option("-c","--config-file",action="store",type="string",\
+  default=None, help="config file with list of actions" )
+parser.add_option("--netrc", "-N",
+  help="Load username and password from this file",
+  default=os.environ.get('NETRC', '~/.netrc'))
 
-  parser.add_option("-S","--show",action="store_true",\
-      default=False, help="print the payload to stdout" )
+parser.add_option("-S","--show",action="store_true",\
+  default=False, help="print the payload to stdout" )
 
-  parser.add_option("-n","--node",action="store",type="string",\
-      default=None, help="name of the node on the pubsub server" )
+parser.add_option("-n","--node",action="store",type="string",\
+  default=None, help="name of the node on the pubsub server" )
 
-  # debugging options
-  parser.add_option("-v","--verbose",action="store_true",\
-      default=False, help="be verbose as you process the request" )
-  parser.add_option("-g","--debug",action="store_true",\
-      default=False, help="should  print out lots of information" )
+# debugging options
+parser.add_option("-v","--verbose",action="store_true",\
+  default=False, help="be verbose as you process the request" )
+parser.add_option("-g","--debug",action="store_true",\
+  default=False, help="should  print out lots of information" )
 
-  # options about message handling
-  parser.add_option("", "--dont-wait",action="store_true",\
-      default=False, help="if supplied, jobs will be launched \
-      as soon as they arrive, rather than blocking")
+# options about message handling
+parser.add_option("", "--dont-wait",action="store_true",\
+  default=False, help="if supplied, jobs will be launched \
+  as soon as they arrive, rather than blocking")
 
-  # version
-  parser.add_option("-w", "--version", action="store_true",
-      default=False, help="display version information")
-  
-  (options,args) = parser.parse_args()
+# version
+parser.add_option("-w", "--version", action="store_true",
+  default=False, help="display version information")
 
-  return options, sys.argv[1:]
-  
 # ============================================================================
 # -- get command line arguments
-opts, args = parse_command_line()
+opts, args = parser.parse_args()
 
 if opts.version:
     import pkg_resources
     version = pkg_resources.require("ligo-lvalert")[0].version
     print "LVAlert v. %s" % version
     exit(0)
+
+try:
+    default_username, _, default_password = netrc.netrc(os.path.expanduser(opts.netrc)).authenticators(opts.server)
+except:
+    default_username, default_password = None, None
+
+myusername = opts.username or default_username
+if not myusername:
+    parser.error('--username is required')
+if myusername == default_username:
+    mypassword = default_password
+else:
+    mypassword = getpass.getpass('password for ' + myusername + ': ')
 
 if opts.dont_wait: ### required packages for "dont-wait" option
     import multiprocessing
@@ -317,11 +336,7 @@ if opts.config_file:
             actions[node] = cp.get(node,'executable')
 
 # set up the stream
-myjid=JID(opts.username+"@"+opts.server+"/"+opts.resource)
-if not opts.password:
-    mypassword = getpass.getpass()
-else:
-    mypassword = opts.password
+myjid=JID(myusername+"@"+opts.server+"/"+opts.resource)
 s=MyClient(myjid,mypassword,actions, wait=not opts.dont_wait)
 
 if opts.verbose:
