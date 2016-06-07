@@ -26,6 +26,7 @@ import select
 import logging
 import libxml2
 import getpass
+import uuid
 import ConfigParser
 from subprocess import Popen, PIPE
 from optparse import *
@@ -281,10 +282,6 @@ class LVAlertHandler(object):
 
 class MyClient(Client):
     def __init__(self, jid, password,actions, wait=True):
-        # if bare JID is provided add a resource -- it is required
-        if not jid.resource:
-            jid=JID(jid.node, jid.domain, "listener")
-
         # we require a TLS connection
         #  Specify sslv3 to get around Sun Java SSL bug handling session ticket
         #  https://rt.phys.uwm.edu/Ticket/Display.html?id=1825
@@ -336,7 +333,8 @@ if opts.config_file:
             actions[node] = cp.get(node,'executable')
 
 # set up the stream
-myjid=JID(myusername+"@"+opts.server+"/"+opts.resource)
+# append UUID to resource to guarantee that it is non-empty and unique
+myjid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4())
 s=MyClient(myjid,mypassword,actions, wait=not opts.dont_wait)
 
 if opts.verbose:

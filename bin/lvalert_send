@@ -23,6 +23,7 @@ import datetime
 import logging
 import libxml2
 import getpass
+import uuid
 from optparse import OptionParser
 from M2Crypto.SSL import Context
 
@@ -243,11 +244,8 @@ if not opts.file:
 libxml2.debugMemory(1)
 
 # Instantiate the client
-jid=JID(myusername+"@"+opts.server+"/"+opts.resource)
-# if bare JID is provided add a resource -- it is required
-if not jid.resource:
-    jid=JID(jid.node, jid.domain, "sender")
-
+# append UUID to resource to guarantee that it is non-empty and unique
+jid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4())
 client = MyClient(jid,mypassword,opts.max_attempts,onStart)
 
 # Connect

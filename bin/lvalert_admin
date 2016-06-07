@@ -24,6 +24,7 @@ import select
 import logging
 import libxml2
 import getpass
+import uuid
 from optparse import *
 from M2Crypto.SSL import Context
 
@@ -162,10 +163,6 @@ else:
 
 class MyClient(Client):
     def __init__(self, jid, password):
-        # if bare JID is provided add a resource -- it is required
-        if not jid.resource:
-            jid=JID(jid.node, jid.domain, "admin")
-
         # we require a TLS connection
         #  Specify sslv3 to get around Sun Java SSL bug handling session ticket
         #  https://rt.phys.uwm.edu/Ticket/Display.html?id=1825
@@ -256,7 +253,8 @@ else:
 libxml2.debugMemory(1)
 
 # set up the stream
-myjid=JID(myusername+"@"+opts.server+"/"+opts.resource)
+# append UUID to resource to guarantee that it is non-empty and unique
+myjid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4())
 s=MyClient(jid=myjid,password=mypassword)
 
 if opts.verbose:
