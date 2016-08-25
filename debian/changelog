@@ -1,3 +1,11 @@
+ligo-lvalert (1.4-1) unstable; urgency=low
+
+  * Fixed changelog for proper debian packaging
+  * Append UUID to resource name to guarantee that it is unique
+  * Accept password interatively or from netrc, but not command line args
+
+ -- Alexander Pace <alexander.pace@ligo.org>  Thu, 25 Aug 2016 14:52:50 -0400
+
 ligo-lvalert (1.3.1-1) unstable; urgency=low
 
   * Bugfix for --dont-wait option
