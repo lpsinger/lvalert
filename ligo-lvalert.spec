@@ -15,7 +15,7 @@ Prefix:    %{_prefix}
 BuildArch: noarch
 Vendor:    Alexander Pace <alexander.pace@ligo.org>
 Requires:  python ligo-common pyxmpp
-BuildRequires: python
+BuildRequires: python-setuptools
 Url:       http://www.lsc-group.phys.uwm.edu/daswg/lvalert.html
 
 %description
