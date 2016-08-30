@@ -245,7 +245,7 @@ libxml2.debugMemory(1)
 
 # Instantiate the client
 # append UUID to resource to guarantee that it is non-empty and unique
-jid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4())
+jid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4().hex)
 client = MyClient(jid,mypassword,opts.max_attempts,onStart)
 
 # Connect

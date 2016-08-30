@@ -254,7 +254,7 @@ libxml2.debugMemory(1)
 
 # set up the stream
 # append UUID to resource to guarantee that it is non-empty and unique
-myjid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4())
+myjid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4().hex)
 s=MyClient(jid=myjid,password=mypassword)
 
 if opts.verbose:

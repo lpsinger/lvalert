@@ -334,7 +334,7 @@ if opts.config_file:
 
 # set up the stream
 # append UUID to resource to guarantee that it is non-empty and unique
-myjid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4())
+myjid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4().hex)
 s=MyClient(myjid,mypassword,actions, wait=not opts.dont_wait)
 
 if opts.verbose:
