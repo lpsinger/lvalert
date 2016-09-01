@@ -1,3 +1,10 @@
+ligo-lvalert (1.4.1-1) unstable; urgency=low
+
+  * Fix import error when python-ligo-lvalert is installed alone on Debian
+  * Fix errors in converting UUID to string
+
+ -- Alexander Pace <alexander.pace@ligo.org>  Thu, 01 Sep 2016 14:19:44 -0400
+
 ligo-lvalert (1.4-1) unstable; urgency=low
 
   * Fixed changelog for proper debian packaging

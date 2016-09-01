@@ -21,7 +21,7 @@ import os
 
 from setuptools import setup, find_packages
 
-version = "1.4"
+version = "1.4.1"
 
 setup(
   name = "ligo-lvalert",
