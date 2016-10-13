@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 import netrc
 import sys
 import os
@@ -121,7 +122,7 @@ opts, args = parser.parse_args()
 if opts.version:
     import pkg_resources
     version = pkg_resources.require("ligo-lvalert")[0].version
-    print "LVAlert v. %s" % version
+    print("LVAlert v. %s" % version)
     exit(0)
 
 try:
@@ -138,10 +139,10 @@ else:
     mypassword = getpass.getpass('password for ' + myusername + ': ')
 
 if not opts.node:
-    raise ValueError, "--node is required"
+    raise ValueError("--node is required")
 
 if not opts.file:
-    raise ValueError, "--file is required"
+    raise ValueError("--file is required")
 
 # add a logger so that we can see what's going
 logger=logging.getLogger(__name__)
@@ -230,14 +231,14 @@ class MyClient(Client):
             self.counter = self.counter + 1
             self.sendMessage(node,msg,recpt)
         else:
-            print "Reached max_attempts. Disconnecting..."
+            print("Reached max_attempts. Disconnecting...")
             self.disconnect()
             sys.exit(1)
         return True
 
 # Check for file
 if not opts.file:
-   print "You must supply a file to send"
+   print("You must supply a file to send")
    sys.exit(1)
 
 # Debug the memory
@@ -255,7 +256,7 @@ client.connect()
 try:
     client.loop(1)
 except KeyboardInterrupt:
-    print u"disconnecting..."
+    print("disconnecting...")
     client.disconnect()
 
 # vi: sts=4 et sw=4

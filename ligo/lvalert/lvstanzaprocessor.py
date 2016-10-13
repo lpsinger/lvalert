@@ -113,10 +113,10 @@ class LVAlertStanzaProcessor(LVAlertSP):
                 ufr=fr.as_unicode()
             else:
                 ufr=None
-            if self._iq_response_handlers.has_key((sid,ufr)):
+            if (sid,ufr) in self._iq_response_handlers:
                 key=(sid,ufr)
             elif ( (fr==self.peer or fr==self.me)
-                    and self._iq_response_handlers.has_key((sid,None))):
+                    and (sid,None) in self._iq_response_handlers):
                 key=(sid,None)
             else:
                 return False
@@ -131,26 +131,26 @@ class LVAlertStanzaProcessor(LVAlertSP):
 
         q=stanza.get_query()
         if not q:
-            raise BadRequestProtocolError, "Stanza with no child element"
+            raise BadRequestProtocolError("Stanza with no child element")
         el=q.name
         ns=q.ns().getContent()
 
         if typ=="get":
-            if self._iq_get_handlers.has_key((el,ns)):
+            if (el,ns) in self._iq_get_handlers:
                 response = self._iq_get_handlers[(el,ns)](stanza)
                 self.process_response(response)
                 return True
             else:
-                raise FeatureNotImplementedProtocolError, "Not implemented"
+                raise FeatureNotImplementedProtocolError("Not implemented")
         elif typ=="set":
-            if self._iq_set_handlers.has_key((el,ns)):
+            if (el,ns) in self._iq_set_handlers:
                 response = self._iq_set_handlers[(el,ns)](stanza)
                 self.process_response(response)
                 return True
             else:
-                raise FeatureNotImplementedProtocolError, "Not implemented"
+                raise FeatureNotImplementedProtocolError("Not implemented")
         else:
-            raise BadRequestProtocolError, "Unknown IQ stanza type"
+            raise BadRequestProtocolError("Unknown IQ stanza type")
 
     def __try_handlers(self,handler_list,typ,stanza):
         """ Search the handler list for handlers matching
@@ -286,7 +286,7 @@ class LVAlertStanzaProcessor(LVAlertSP):
             elif stanza.stanza_type=="presence":
                 if self.process_presence(stanza):
                     return True
-        except ProtocolError, e:
+        except ProtocolError as e:
             typ = stanza.get_type()
             if typ != 'error' and (typ != 'result' or stanza.stanza_type != 'iq'):
                 r = stanza.make_error_response(e.xmpp_name)
@@ -384,7 +384,7 @@ class LVAlertStanzaProcessor(LVAlertSP):
         """
         self.lock.acquire()
         try:
-            if self._iq_get_handlers.has_key((element,namespace)):
+            if (element,namespace) in self._iq_get_handlers:
                 del self._iq_get_handlers[(element,namespace)]
         finally:
             self.lock.release()
@@ -418,7 +418,7 @@ class LVAlertStanzaProcessor(LVAlertSP):
             - `namespace`: payload element namespace URI."""
         self.lock.acquire()
         try:
-            if self._iq_set_handlers.has_key((element,namespace)):
+            if (element,namespace) in self._iq_set_handlers:
                 del self._iq_set_handlers[(element,namespace)]
         finally:
             self.lock.release()
@@ -433,7 +433,7 @@ class LVAlertStanzaProcessor(LVAlertSP):
             - `priority`: handler priority. Must be >=0 and <=100. Handlers
               with lower priority list will be tried first."""
         if priority<0 or priority>100:
-            raise ValueError,"Bad handler priority (must be in 0:100)"
+            raise ValueError("Bad handler priority (must be in 0:100)")
         handler_list.append((priority,typ,namespace,handler))
         handler_list.sort()
 
@@ -516,7 +516,7 @@ class LVAlertStanzaProcessor(LVAlertSP):
             - `stanza`: the stanza to send.
         :Types:
             - `stanza`: `pyxmpp.stanza.Stanza`"""
-        raise NotImplementedError,"This method must be overriden in derived classes."""
+        raise NotImplementedError("This method must be overriden in derived classes.""")
 
 pyxmpp.stanzaprocessor.StanzaProcessor = LVAlertStanzaProcessor
 

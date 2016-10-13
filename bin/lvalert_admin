@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 import netrc
 import sys
 import os
@@ -142,7 +143,7 @@ opts, args = parser.parse_args()
 if opts.version:
     import pkg_resources
     version = pkg_resources.require("ligo-lvalert")[0].version
-    print "LVAlert v. %s" % version
+    print("LVAlert v. %s" % version)
     exit(0)
 
 if (opts.add_publisher or opts.create or opts.delete or opts.subscribe or opts.unsubscribe or opts.delete_publisher) and not opts.node:
@@ -183,7 +184,7 @@ class MyClient(Client):
         component to a server changes. This will usually be used to
         let the user know what is going on."""
         if opts.verbose:
-            print "*** State changed: %s %r ***" % (state,arg)
+            print("*** State changed: %s %r ***" % (state,arg))
         else:
             pass
 
@@ -230,14 +231,14 @@ class MyClient(Client):
     def idle(self):
         if self.stream and self.session_established:
             if opts.verbose:
-                print "Disconnecting"
+                print("Disconnecting")
             self.disconnect()
         if opts.verbose:
-            print "idle"
+            print("idle")
         time.sleep(4)
 
     def post_disconnect(self):
-        print "Disconnected"
+        print("Disconnected")
         raise Disconnected
 
 
@@ -258,19 +259,19 @@ myjid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4().hex)
 s=MyClient(jid=myjid,password=mypassword)
 
 if opts.verbose:
-    print "connecting..."
+    print("connecting...")
 s.connect()
 
 if opts.verbose:
-    print "build pubsub stanza..."
+    print("build pubsub stanza...")
 recpt=JID("pubsub."+opts.server)
 pspl=pubsub.PubSub(from_jid = myjid, to_jid = recpt, stream = s,\
 stanza_type="get")
 if opts.get_nodes:
-    print "Getting nodes"
+    print("Getting nodes")
     pspl.get_nodes()
 elif opts.create:
-    print "Creating node " + opts.node
+    print("Creating node " + opts.node)
     pspl.create_node(opts.node)
 elif opts.delete:
     pspl.delete_node(opts.node)
@@ -294,12 +295,12 @@ else:
     pspl.get_nodes()
 
 if opts.verbose:
-    print "sending message..."
+    print("sending message...")
 
 try:
     s.loop(1)
 except KeyboardInterrupt:
-    print u"disconnecting..."
+    print(u"disconnecting...")
     s.disconnect()
 
 # vi: sts=4 et sw=4

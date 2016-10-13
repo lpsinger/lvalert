@@ -18,7 +18,8 @@
 
 import sys
 import os
-import urlparse
+from six.moves.urllib.parse import urlparse
+from six import StringIO
 from optparse import *
 from subprocess import Popen,PIPE
 
@@ -26,7 +27,6 @@ from subprocess import Popen,PIPE
 
 import warnings
 import json
-import StringIO
 
 try:
     from glue.ligolw import ligolw
@@ -66,7 +66,7 @@ class LVAlertTable(Table):
     }
     
 class LVAlertRow(object):
-  __slots__ = LVAlertTable.validcolumns.keys()
+  __slots__ = list(LVAlertTable.validcolumns.keys())
   
 LVAlertTable.RowType = LVAlertRow
 
@@ -87,7 +87,7 @@ def parse_file_url(file_url):
   general_dir: the /general subdir of the gracedb entry (where data not
   produced by the event supplier should be placed)
   """
-  parsed = urlparse.urlparse(file_url)
+  parsed = urlparse(file_url)
   host = parsed[1]
   path, fname = os.path.split(parsed[2])
   
@@ -114,10 +114,10 @@ def get_LVAdata_from_stdin(std_in, as_dict=False):
     data_loc = out_dict['data_loc']
     description = out_dict['description']
     alert_type = out_dict['alert_type']
-  except Exception, e:            
+  except Exception as e:
     # We don't have a file object anymore, because we .read() it.
     # Instead, we want this to load a blob of text. 
-    f = StringIO.StringIO(content)
+    f = StringIO(content)
     doc = utils.load_fileobj(f, contenthandler = LIGOLWContentHandler)[0]
     lvatable = table.get_table(doc, LVAlertTable.tableName)
     file = lvatable[0].file

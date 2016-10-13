@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with lvalert.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import print_function
 import netrc
 import sys
 import os
@@ -27,7 +28,7 @@ import logging
 import libxml2
 import getpass
 import uuid
-import ConfigParser
+import six.moves.configparser
 from subprocess import Popen, PIPE
 from optparse import *
 from M2Crypto.SSL import Context
@@ -158,7 +159,7 @@ opts, args = parser.parse_args()
 if opts.version:
     import pkg_resources
     version = pkg_resources.require("ligo-lvalert")[0].version
-    print "LVAlert v. %s" % version
+    print("LVAlert v. %s" % version)
     exit(0)
 
 try:
@@ -241,7 +242,7 @@ class LVAlertHandler(object):
                 ### max_size=1000 (bytes?) should be larger than most expected lvalert messages?
                 elif self.wait:
                     p = Popen([self.actions[n]], stdin=PIPE, stdout=PIPE)
-                    print p.communicate(e)[0]
+                    print(p.communicate(e)[0])
                 else:
 #                    import tempfile
                     file_obj = tempfile.SpooledTemporaryFile(mode="w+r", max_size=1000)
@@ -258,9 +259,9 @@ class LVAlertHandler(object):
                 #===================================================================
                 sys.stdout.flush()
             else:
-                print "Payload received at %s" % (datetime.datetime.now().ctime())
+                print("Payload received at %s" % (datetime.datetime.now().ctime()))
                 if opts.show:
-                    print u'%s' % (e,),
+                    print(u'%s' % (e,), end=' ')
         return True
 
     def get_node(self,stanza):
@@ -306,7 +307,7 @@ class MyClient(Client):
         component to a server changes. This will usually be used to
         let the user know what is going on."""
         if opts.verbose:
-            print "*** State changed: %s %r ***" % (state,arg)
+            print("*** State changed: %s %r ***" % (state,arg))
         else:
             pass
 
@@ -324,12 +325,12 @@ libxml2.debugMemory(1)
 # set up handlers for each node
 actions={}
 if opts.config_file:
-    cp=ConfigParser.ConfigParser()
+    cp=six.moves.configparser.ConfigParser()
     cp.read(opts.config_file)
     for node in cp.sections():
         try:
             actions[node] = cp.get(node,'executible')
-        except ConfigParser.NoOptionError:
+        except six.moves.configparser.NoOptionError:
             actions[node] = cp.get(node,'executable')
 
 # set up the stream
@@ -338,15 +339,15 @@ myjid=JID(myusername+"@"+opts.server+"/"+opts.resource+uuid.uuid4().hex)
 s=MyClient(myjid,mypassword,actions, wait=not opts.dont_wait)
 
 if opts.verbose:
-    print "connecting..."
+    print("connecting...")
 s.connect()
 
 if opts.verbose:
-    print "listening for message..."
+    print("listening for message...")
 try:
     s.loop(1)
 except KeyboardInterrupt:
-    print u"disconnecting..."
+    print(u"disconnecting...")
     s.disconnect()
 
 # vi: sts=4 et sw=4

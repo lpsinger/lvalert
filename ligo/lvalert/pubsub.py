@@ -24,6 +24,7 @@ Normative reference:
    ????
 """
 
+from __future__ import print_function
 __revision__="$Id$"
 __docformat__="restructuredtext en"
 
@@ -96,9 +97,9 @@ class PubSub(Iq):
     def get_nodes_result(self,cresult):
         c = cresult.xmlnode.children
         c = c.children
-        print "List of nodes"
+        print("List of nodes")
         while c:
-            print "Node: %s, %s" % (c.prop("node"), c.prop("name")) 
+            print("Node: %s, %s" % (c.prop("node"), c.prop("name"))) 
             c = c.next
         #print "End list of nodes"
 
@@ -111,7 +112,7 @@ class PubSub(Iq):
         self.set_type("set")
 
     def generic_result(self,cresult):
-        print "Successfully completed operation"
+        print("Successfully completed operation")
 
     def create_timeout(self,ctimeout):
         """Process session request time out.  
@@ -155,8 +156,8 @@ class PubSub(Iq):
     def subscriptions_result(self,cresult):
         c = cresult.xmlnode.children.children.children
         while c:
-            print "Node: %s [ %s subid=%s]" % ( c.prop("node"),\
-                c.prop("subscription"), c.prop("subid") )
+            print("Node: %s [ %s subid=%s]" % ( c.prop("node"),\
+                c.prop("subscription"), c.prop("subid") ))
             c = c.next
 
     def publisher(self,jid,node_name,affiliation):
@@ -179,8 +180,8 @@ class PubSub(Iq):
     def affiliations_result(self,cresult):
         c = cresult.xmlnode.children.children.children
         while c:
-            print "Affiliation: %s [ %s ]" % ( c.prop("jid"),\
-                c.prop("affiliation"))
+            print("Affiliation: %s [ %s ]" % ( c.prop("jid"),\
+                c.prop("affiliation")))
             c = c.next
 
     def subscribe(self,jid,node_name):
@@ -204,7 +205,7 @@ class PubSub(Iq):
 
     def subscribe_result(self,cresult):
         node_name = cresult.get_query().children.prop("node")
-        print "Successfully subscribed to node %s" % node_name
+        print("Successfully subscribed to node %s" % node_name)
 
     def subscribe_timeout(self,ctimeout):
         """Process session request time out.  
@@ -246,11 +247,11 @@ class PubSubMessage(Stanza):
         if isinstance(xmlnode,PubSubMessage):
             pass
         elif isinstance(xmlnode,Stanza):
-            raise TypeError, "Couldn't make PubSubMessage from other Stanza"
+            raise TypeError("Couldn't make PubSubMessage from other Stanza")
         elif isinstance(xmlnode,libxml2.xmlNode):
             pass
         elif xmlnode is not None:
-            raise TypeError, "Couldn't make PubSubMessage from %r" % (type(xmlnode),)
+            raise TypeError("Couldn't make PubSubMessage from %r" % (type(xmlnode),))
 
         if xmlnode is None:
             xmlnode="message"
