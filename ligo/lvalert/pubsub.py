@@ -63,7 +63,7 @@ class PubSub(Iq):
         return ps
 
     def get_pubsub(self):
-	c = self.xmlnode.children
+        c = self.xmlnode.children
         while c:
             try:
                 if c.ns():
